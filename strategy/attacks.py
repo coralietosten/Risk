@@ -122,7 +122,7 @@ def basic_attack (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Uni
         if territory_occupant(s,t_a) == a and territory_occupant(s, t_d) != a : #t_a appartient a l'attaquant et t_d appartient pas a attaquant
             if territory_units(s, t_a) - territory_units(s,t_d) > max_diff_de: 
                 max_diff_de = territory_units(s, t_a) - territory_units(s,t_d)
-                A = (t_a, t_d, territory_units(s, t_a))
+                A = (t_a, t_d, min(3,territory_units(s, t_a)-1))
 
     #post-conditions
     if A is not None:
