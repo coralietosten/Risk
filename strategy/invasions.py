@@ -142,3 +142,22 @@ def uniform_invasion (s:   State,
     assert result <= territory_units(s, t_a) - p_a - 1, "At least one unit must be left behind"
 
     return result
+
+def basic_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p_a: Unit) -> Unit:
+    #pré-condition
+    assert isinstance(s, State)
+    assert isinstance(t_a, Territory)
+    assert isinstance(t_d, Territory)
+    assert t_a in s.state, "The attacking territory must belong to the current state"
+    assert t_d in s.state, "The defending territory must belong to the current state"
+    assert territory_occupant(s, t_a) != territory_occupant(s, t_d), "The armies of the two territories must be distinct"
+    assert n_a > 0, "At least one unit must invade"
+
+    result = n_a - p_a
+
+    #post_conditions
+    assert n_a - p_a <= result, f"At least the left units from the last battle must invade, i.e., {n_a} - {p_a} = {n_a - p_a}"
+    assert result <= territory_units(s, t_a) - p_a - 1, "At least one unit must be left behind"
+
+    return result
+
