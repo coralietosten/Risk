@@ -150,12 +150,22 @@ def basic_reinforcement(s: State,
                 tMini = i
         amount[tMini] += 1
 
+    # On enlève les territoire sans aucune modification
+    delete = []
+    for i in range(len(amount)):
+        if amount[i] == 0:
+            delete.append(i)
+    delete.sort()
+    for i in range(len(delete)-1,-1,-1):
+        amount.pop(delete[i])
+        territories.pop(delete[i])
+
     result = dict(zip(territories, amount))
 
 
 
     # POST-CONDITION
-    assert all(result[t].army == a for t in result), "The selected territories belong to the army"
+    assert all(territory_occupant(s, t) == a for t in result), "The selected territories belong to the army"
     assert all(result[t] > 0 for t in result), "Each selected territory must receive at least one unit"
     assert sum(result[t] for t in result) == reinforcement_units(s, a), "The sum of all the reinforcement units must be equal to {reinforcement_units(s, a)}"
 
