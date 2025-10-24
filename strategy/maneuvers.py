@@ -248,7 +248,7 @@ def basic_maneuver (s: State,
 
     if tMini != None : 
         if mini <= maxi-2 : 
-            result = (territories[tMaxi], territories[tMini], 1) 
+            result = (territories[tMaxi], tMini, 1) 
 
 
 
