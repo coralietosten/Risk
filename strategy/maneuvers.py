@@ -212,3 +212,56 @@ def random_uniform_largest_maneuver (s: State,
                    for b in bordering_territories(s, t)), "Effective unless the army has only isolated territories or not enough units to maneuver"
 
     return result
+
+
+
+def basic_maneuver (s: State,
+                    a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+    # PRE-CONDITION
+    assert isinstance(s, State)
+    assert isinstance(a, Army)
+    assert a in s.world.armies, "The army must belong to the current state"
+
+    territories = list(territories_occupied_by_army(s,a))
+    card_n = len(territories)
+
+    maxi =0
+    tMaxi =None
+    for i in range(card_n) : 
+        nb = territory_units(s,territories[i]) 
+        if maxi<nb:
+            maxi = nb
+            tMaxi = i
+            
+    result = None
+
+    adj = bordering_territories(s,territories[tMaxi])
+    mini = None
+    tMini = None
+    for t in adj:
+        if territory_occupant(s,t) == a:
+            nb = territory_units(s,t)
+            if mini == None or nb < mini:
+                mini = nb
+                tMini=t
+
+
+    if tMini != None : 
+        if mini <= maxi-2 : 
+            result = (territories[tMaxi], territories[tMini], 1) 
+
+
+
+    # POST-CONDITION
+    if result is not None:
+        (t_0, t_1, n) = result
+        assert isinstance(t_0, Territory)
+        assert isinstance(t_1, Territory)
+        assert t_0 in s.state, "The starting territory belongs to the current state"
+        assert t_1 in s.state, "The ending territory belongs to the current state"
+        assert territory_occupant(s, t_0) == a, "The starting territory is occupied by the army"
+        assert territory_occupant(s, t_1) == a, "The defending territory is occupied by the army"
+        assert n > 0, "At least one unit is maneuvering"
+        assert n < territory_units(s, t_0), "At least one unit must be left behind"
+
+    return result
