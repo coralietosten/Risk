@@ -158,14 +158,14 @@ AIs = {
     -2: strategy_neutral_fully_random,
     -1: strategy_neutral_uniform_random,
     1: strategy_fully_random,
-    # 2: strategy_basic,
+    2: strategy_basic,
     }
 """
 The available AIs, identified by indices in order to be selected later.
 """
 
 
-GAME = [1, 1 , -2]
+GAME = [1, 1 , 2]
 """
 A selection of the strategies to be used by different armies.
 """
