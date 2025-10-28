@@ -28,7 +28,7 @@ from boards.polytech_board import risk_map, risk_display
 from boards.rendering import risk_colour_map, colour_map, BRIGHT_BACKGROUND_COLOUR_MAP
 from ais.neutrals import strategy_neutral_fully_random, strategy_neutral_uniform_random
 from ais.randoms import strategy_fully_random, strategy_uniform_random
-from ais.basic import strategy_basic
+from ais.basic import strategy_basic, strategy_basic_improved
 from game.game import game
 from game.setup import random_initial_state
 
@@ -159,6 +159,7 @@ AIs = {
     -1: strategy_neutral_uniform_random,
     1: strategy_fully_random,
     2: strategy_basic,
+    3: strategy_basic_improved
     }
 """
 The available AIs, identified by indices in order to be selected later.
