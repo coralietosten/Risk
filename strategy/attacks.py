@@ -63,13 +63,13 @@ __all__ = [
     ]
 
 
-from typing import Tuple, Optional
+from typing import Tuple, Optional, List, Set
 from random import choice
 from model.region import Unit
 from model.army import Army
 from model.territory import Territory
 from model.state import State
-from model.state_informations import territory_occupant, territory_units, is_defeated_army
+from model.state_informations import territory_occupant, territory_units, is_defeated_army, territories_occupied_by_army, bordering_territories, sort_territories_by_units
 
 
 def random_attack (s: State,
@@ -137,3 +137,54 @@ def basic_attack (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Uni
         assert n < territory_units(s, t_a), "The attacking units is strictly less than the number of available units"
 
     return A
+
+
+
+
+
+def full_attack (s:State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+    """
+    le territoire attaquant est le territoire de l'attaquant qui à le plus d'unités pouvant attaquer
+    le territoire défenseur est le territoire qui à le plus d'unité parlis les territoires adjacents au territoire attaquant
+    le nombre d'unité choisit pour l'attaque est le maximum possible
+    """
+
+    #precondition
+    assert isinstance(s, State)
+    assert isinstance(a, Army)
+    assert a in s.world.armies, "the army must belong to the current state"
+    assert not is_defeated_army(s, a), "The army must not be defeated"
+
+
+    A= None
+    t_as = territories_occupied_by_army(s, a)
+    t_as = sort_territories_by_units(s, t_as)
+    for t_a in t_as :
+        t_ad = bordering_territories(s, t_a[0]) #territoires adjacents 
+        t_ad = sort_territories_by_units(s, t_ad)
+        for t_d in t_ad : 
+            if territory_occupant(s, t_d[0]) != a  and t_a[1] != 1:
+                if A == None : 
+                    n = min(3,(territory_units(s, t_a[0])-1)) 
+                    A = (t_a[0], t_d[0],n)
+    
+    #post-conditions
+    if A is not None:
+        (t_a, t_d, n) = A
+        assert isinstance(t_a, Territory)
+        assert isinstance(t_d, Territory)
+        assert t_a in s.state, "The attacking territory belongs to the current state"
+        assert t_d in s.state, "The defending territory belongs to the current state"
+        assert territory_occupant(s, t_a) == a, "The attacking territory is occupied by the army"
+        assert territory_occupant(s, t_d) != a, "The defending territory is not occupied by the army"
+        assert n in { 1, 2, 3 }, "The attacking units is between one and three"
+        assert n < territory_units(s, t_a), "The attacking units is strictly less than the number of available units"
+
+    return A
+
+    
+    
+
+
+
+

@@ -215,8 +215,7 @@ def random_uniform_largest_maneuver (s: State,
 
 
 
-def basic_maneuver (s: State,
-                    a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+def basic_maneuver (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
     # PRE-CONDITION
     assert isinstance(s, State)
     assert isinstance(a, Army)
@@ -265,3 +264,27 @@ def basic_maneuver (s: State,
         assert n < territory_units(s, t_0), "At least one unit must be left behind"
 
     return result
+
+
+def full_attack_maneuver (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+    # PRE-CONDITION
+    assert isinstance(s, State)
+    assert isinstance(a, Army)
+    assert a in s.world.armies, "The army must belong to the current state"
+
+    result = None
+
+    # POST-CONDITION
+    if result is not None:
+        (t_0, t_1, n) = result
+        assert isinstance(t_0, Territory)
+        assert isinstance(t_1, Territory)
+        assert t_0 in s.state, "The starting territory belongs to the current state"
+        assert t_1 in s.state, "The ending territory belongs to the current state"
+        assert territory_occupant(s, t_0) == a, "The starting territory is occupied by the army"
+        assert territory_occupant(s, t_1) == a, "The defending territory is occupied by the army"
+        assert n > 0, "At least one unit is maneuvering"
+        assert n < territory_units(s, t_0), "At least one unit must be left behind"
+
+    return result
+

@@ -31,10 +31,11 @@ __all__ = [
     'undefeated_armies',
     'winning_army',
     'game_over',
+    'sort_territories_by_units',
     ]
 
 
-from typing import Optional, Set, Tuple
+from typing import Optional, Set, Tuple, List
 from model.region import Region, Unit
 from model.territory import Territory
 from model.army import Army
@@ -339,3 +340,17 @@ def game_over (s: State) -> bool:
     assert isinstance(s, State)
 
     return winning_army(s) is not None
+
+
+def sort_territories_by_units(s, t_a : Set[Territory])-> List[Tuple[Territory,Unit]]:
+    """
+    renvoie une liste de couple : territoire, unité. Trié dans l'ordre décroissant
+    """
+    result = []
+    for t in t_a :
+        u = territory_units(s, t)
+        result.append((t,u))
+    result.sort(key = lambda x:x[1],reverse=True) #tri de la liste selon le nombre d'units
+    return result
+
+
