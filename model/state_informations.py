@@ -342,6 +342,34 @@ def game_over (s: State) -> bool:
 
 # FUNCTIONS ADDS
 from math import inf
+
+def getSafeTerritories(s:State,a:Army) :
+    terr = set()
+    for t in s.world.territories:
+        a1 = territory_occupant(s,t) 
+        if a == a1:
+            if len(armies_in_territories(s,bordering_territories(s,t))) == 1:
+                terr.add(t)
+    return terr
+            
+
+def getSafePredecessor(s:State,t:Territory) : 
+    a = territory_occupant(s,t)
+
+    territories = bordering_territories(s,t)
+    safe_predecessor = set()
+    for ti in territories:
+        ti_adj = bordering_territories(s,ti)
+        ti_adj_a = territory_occupant(s,ti)
+        if ti_adj_a == a:
+            for ti_adj_i in ti_adj:
+                if ti_adj_i != t:
+                    ti_adj_i_a = territory_occupant(s,ti_adj_i)
+                    if ti_adj_i_a == a:
+                        safe_predecessor.add(ti) #On ajoute ti comme étant un prédecesseur en sécurité
+    
+    return safe_predecessor
+
 def territories_in_regions(s:State, r: Region):
     if r == None:
         return []
