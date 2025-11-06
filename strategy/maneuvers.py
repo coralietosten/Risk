@@ -71,7 +71,7 @@ from model.region import Unit
 from model.territory import Territory
 from model.army import Army
 from model.state import State
-from model.state_informations import territory_fronts, territory_occupant, territory_units, bordering_territories, territories_occupied_by_army
+from model.state_informations import getSafePredecessor, getSafeTerritories, territory_fronts, territory_occupant, territory_units, bordering_territories, territories_occupied_by_army
 
 
 def no_maneuver (s: State,
@@ -275,8 +275,28 @@ def manager_maneuver(s:State,a:Army):
     assert a in s.world.armies, "The army must belong to the current state"
     result = None
 
-    
-    result = basic_maneuver(s,a)
+    for (t1,a1,_,_) in territory_fronts(s) :
+        if a1 == a:
+            p = getSafePredecessor(s,t1)
+            if len(p)>0:
+                for t in p:
+                    if territory_units(s,t)>2:
+                        result= (t, t1,territory_units(s,t)-2 )
+                        break
+
+    if result is None: 
+        terr = getSafeTerritories(s,a)  
+        for t in terr:
+            val1 = territory_units(s,t)     
+            if val1>2:
+                mini = (None,0)
+                for t2 in bordering_territories(s,t):
+                    val = territory_units(s,t2)     
+                    if mini[0] == None or mini[1]>val:
+                        mini = (t2,val)  
+                result= (t, mini[0],val1-2 )
+                break
+
 
     # POST-CONDITION
     if result is not None:
