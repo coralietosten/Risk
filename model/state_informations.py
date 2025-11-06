@@ -237,7 +237,7 @@ def territory_fronts (s: State) -> Set[Tuple[Territory, Army, Territory, Army]]:
 
     result = { (t1, a1, t2, a2)
                for (t1, t2) in s.world.adjacencies
-               if (a1 := territory_occupant(s, t1)) != (a2 := territory_occupant(s, t1)) }
+               if (a1 := territory_occupant(s, t1)) != (a2 := territory_occupant(s, t2)) }
 
     assert isinstance(result, Set)
     assert all(isinstance(t, tuple) for t in result)
@@ -339,3 +339,93 @@ def game_over (s: State) -> bool:
     assert isinstance(s, State)
 
     return winning_army(s) is not None
+
+# FUNCTIONS ADDS
+from math import inf
+def territories_in_regions(s:State, r: Region):
+    if r == None:
+        return []
+    return s.world.region_territories[r]
+
+def matrice_distance(s:State, territoires: list):
+    liens = s.world.adjacencies
+
+    n = len(territoires)
+    D = []
+    for i in range(n):
+        ls = []
+        for j in range(n):
+            if i==j:
+               ls.append(0)
+            else:
+               ls.append(inf)
+        D.append(ls)
+
+    for l in liens : 
+        l1 = territoires.index(l[0])
+        l2 = territoires.index(l[1])
+        D[l1][l2] = 1
+        D[l2][l1] = 1
+
+    # for k in range(n):
+    #     for i in range(n):
+    #         for j in range(n):
+    #             D[i][j] = min(D[i][j], D[i][k] + D[k][j])
+    return D
+
+import numpy as np
+def find_path(s:State,t1:Territory,t2:Territory):
+    territories = list(s.world.territories)
+
+    non_visite = list(s.world.territories)
+    M = matrice_distance(s, territories)
+    
+    distance = dict()
+    precedent = dict()
+
+    for t in territories:
+        distance[t] = inf
+    precedent[t1.name] = None
+    distance[t1] = 0 
+    if t1 in non_visite:
+        non_visite.remove(t1)
+    
+    u = t1
+    while len(non_visite) > 0:
+        
+        i = territories.index(u)
+        for v in bordering_territories(s,u):
+            j = territories.index(v)
+            
+            nouvelle_distance = distance[u] + M[i][j]
+            d_v = distance[v] 
+            
+            if d_v > nouvelle_distance:
+                distance[v] = nouvelle_distance
+                precedent[v.name] = u.name
+        #On récupère le territoire avec la distance la plus faible
+        #présent dans non_visite
+        mini = (inf,u)
+        for t in non_visite:
+            if distance[t]<mini[0]:
+                mini = (distance[t],t)
+        u = mini[1]
+        non_visite.remove(mini[1])
+        
+
+    n = t2.name
+    ls = []
+    if distance[t2] == inf:
+        print("t2 est inatteignable depuis t1")
+        return [t2.name]
+    while n != None:
+        ls.append(n)  
+        n = precedent[n]
+    ls.reverse()  
+    return ls
+
+
+def getTerritoryByName(s:State,name):
+    for t in s.world.territories:
+        if t.name == name:
+            return t
