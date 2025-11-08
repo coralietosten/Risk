@@ -69,7 +69,7 @@ from random import randint
 from model.region import Unit
 from model.territory import Territory
 from model.state import State
-from model.state_informations import territory_occupant, territory_units, bordering_territories
+from model.state_informations import territory_occupant, territory_units, bordering_territories, is_front
 
 
 def minimal_invasion (s:   State,
@@ -181,13 +181,13 @@ def full_attack_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p
 
     nb_unit_t_a = territory_units(s, t_a)
     #savoir si le territoire t_a devient un nonFront
-    is_front = True
-    t_b = bordering_territories(s, t_a)
-    for b in t_b :
-        if territory_occupant(s, b) != territory_occupant(s, t_a) and b != t_d : 
-            is_front = False
+    # is_front = True
+    # t_b = bordering_territories(s, t_a)
+    # for b in t_b :
+    #     if territory_occupant(s, b) != territory_occupant(s, t_a) and b != t_d : 
+    #         is_front = False
     
-    if is_front : 
+    if not is_front(s,t_a) : 
         result = (nb_unit_t_a -1) - p_a #maximum d'unité possible de déplacer
     else :
         result = ((nb_unit_t_a - 1) + (n_a - p_a))//2

@@ -353,4 +353,16 @@ def sort_territories_by_units(s, t_a : Set[Territory])-> List[Tuple[Territory,Un
     result.sort(key = lambda x:x[1],reverse=True) #tri de la liste selon le nombre d'units
     return result
 
+def shortest_path (s: State, t1: Territory, t2 : Territory) : #  -> List[Territory] :
+    result = []
+    bordering_territories(s, t1)
+    return result
 
+def is_front(s: State, t1 : Territory) -> bool :
+    t_b = bordering_territories(s, t1)
+    for b in t_b :
+        if territory_occupant(s, b) != territory_occupant(s, t1) : 
+            return True
+    return False
+
+    

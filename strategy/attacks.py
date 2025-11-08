@@ -120,7 +120,7 @@ def basic_attack (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Uni
     A = None
     for (t_a, t_d) in s.world.adjacencies :
         if territory_occupant(s,t_a) == a and territory_occupant(s, t_d) != a : #t_a appartient a l'attaquant et t_d appartient pas a attaquant
-            if territory_units(s, t_a) - territory_units(s,t_d) > max_diff_de: 
+            if territory_units(s, t_a) - territory_units(s,t_d) > max_diff_de and (territory_units(s, t_a)-1) >1: 
                 max_diff_de = territory_units(s, t_a) - territory_units(s,t_d)
                 A = (t_a, t_d, min(3,territory_units(s, t_a)-1))
 

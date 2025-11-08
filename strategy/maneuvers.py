@@ -71,7 +71,7 @@ from model.region import Unit
 from model.territory import Territory
 from model.army import Army
 from model.state import State
-from model.state_informations import territory_occupant, territory_units, bordering_territories, territories_occupied_by_army
+from model.state_informations import territory_occupant, territory_units, bordering_territories, territories_occupied_by_army, sort_territories_by_units, is_front, undefeated_armies
 
 
 def no_maneuver (s: State,
@@ -272,7 +272,28 @@ def full_attack_maneuver (s: State, a: Army) -> Optional[Tuple[Territory, Territ
     assert isinstance(a, Army)
     assert a in s.world.armies, "The army must belong to the current state"
 
+
+    front = False
     result = None
+    #recherche du territoire avec le plus d'unités
+    t_a = territories_occupied_by_army(s, a) 
+    t_a = sort_territories_by_units(s,t_a) 
+    max_t = t_a[0]
+
+    b_t = list(bordering_territories(s, max_t[0]))
+    b_t_a = []
+    
+    if is_front(s,max_t[0]) : 
+        front = True
+    else : 
+        for b in  b_t: #déplacement de toutes les unités possible vers le territoire front adjacent
+            if territory_occupant(s,b) == territory_occupant(s,max_t[0]) and is_front(s, b) and result == None and max_t[1] >=2:
+                b_t_a.append(b)
+                result = (max_t[0], b, max_t[1]-1)
+    
+    if not front and result == None and max_t[1] >=2 and len(b_t_a) >0: 
+        result = (max_t[0], b_t_a[0], max_t[1]-1)
+
 
     # POST-CONDITION
     if result is not None:
