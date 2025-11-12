@@ -69,8 +69,7 @@ from model.region import Unit
 from model.army import Army
 from model.territory import Territory
 from model.state import State
-from model.state_informations import territory_occupant, territory_units, is_defeated_army, territories_occupied_by_army, bordering_territories, sort_territories_by_units
-
+from model.state_informations import territory_occupant, territory_units, is_defeated_army, territories_occupied_by_army, bordering_territories, sort_territories_by_units, undefeated_armies, probability_win_territory2
 
 def random_attack (s: State,
                    a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
@@ -109,6 +108,10 @@ def random_attack (s: State,
 
 
 def basic_attack (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+    """
+    l'attaquant attaque le territoire qui possède la plus grande différence d'unité avec un de ses territoires
+    """
+
     #precondition
     assert isinstance(s, State)
     assert isinstance(a, Army)
@@ -145,7 +148,7 @@ def basic_attack (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Uni
 def full_attack (s:State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
     """
     le territoire attaquant est le territoire de l'attaquant qui à le plus d'unités pouvant attaquer
-    le territoire défenseur est le territoire qui à le plus d'unité parlis les territoires adjacents au territoire attaquant
+    le territoire défenseur est le territoire qui à le plus d'unité parmis les territoires adjacents au territoire attaquant
     le nombre d'unité choisit pour l'attaque est le maximum possible
     """
 
@@ -163,10 +166,12 @@ def full_attack (s:State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]
         t_ad = bordering_territories(s, t_a[0]) #territoires adjacents 
         t_ad = sort_territories_by_units(s, t_ad)
         for t_d in t_ad : 
-            if territory_occupant(s, t_d[0]) != a  and t_a[1] != 1:
+            if territory_occupant(s, t_d[0]) != a  and t_a[1] > 1:
                 if A == None : 
                     n = min(3,(territory_units(s, t_a[0])-1)) 
                     A = (t_a[0], t_d[0],n)
+    if t_a[1] > 3 :
+        print(probability_win_territory2(s,t_a[0], t_d[0]))
     
     #post-conditions
     if A is not None:
@@ -182,7 +187,13 @@ def full_attack (s:State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]
 
     return A
 
-    
+
+def general_attack(s:State, a:Army) -> Optional[Tuple[Territory,Territory,Unit]]:
+    if len(list(undefeated_armies(s))) <=2 :
+        return full_attack(s, a)
+    else :
+        return basic_attack(s,a)
+
     
 
 

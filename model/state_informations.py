@@ -36,10 +36,12 @@ __all__ = [
 
 
 from typing import Optional, Set, Tuple, List
+from random import choices
 from model.region import Region, Unit
 from model.territory import Territory
 from model.army import Army
 from model.state import State
+from probabilities_single_battle import all_battles_11, all_battles_12, all_battles_21, all_battles_22, all_battles_31, all_battles_32
 
 
 def territory_occupant (s: State,
@@ -366,3 +368,161 @@ def is_front(s: State, t1 : Territory) -> bool :
     return False
 
     
+def probability_win_territory(s:State, ta:Territory, td:Territory) -> float :
+    """
+    on suppose que l'attaquant attaque toujours avec 3 (s'il ne peut pas, il n'attaque pas)
+    all_battle32()
+    """
+    proba_vict = 1
+    list_battle = []
+    battle_win = False
+
+    n_tour = 1
+    ta_units = territory_units(s, ta)
+    td_units = territory_units(s, td) 
+    print(f'nombre dunités de lattaquant {ta_units}, nombre units défenseur {td_units}\n')
+    # nb_tour_min = min(td_units // 2,ta_units //3)  #l'adversaire defend avec 2 et perd tout le temps et que le defenseur attaque avec 3
+
+    while ta_units > 3 and td_units >=2 : #tant qu'on ne peut plus attaquer
+        n_tour +=1
+        population = []
+        poids = []
+        for k, v in all_battles_32().items() :
+            population.append(k)
+            poids.append(v)
+        result_battle = choices(population , poids, k = 1) #renvoie une liste d'un element de population
+        result = result_battle[0]
+        list_battle.append(result)
+        proba_vict = proba_vict * all_battles_32()[result]
+        ta_units -= result[0]
+        td_units -= result[1]
+        if td_units <= 0 :
+            battle_win = True
+    print(f'nombre de tour {n_tour}\n')
+    print(f'unités restante attaquant{ta_units}, unités restante defenseur {td_units}\n')
+    return proba_vict, list_battle , battle_win
+    
+
+def probability_win_territory2(s:State, ta:Territory, td:Territory) -> float :
+    """
+    on suppose que l'attaquant attaque toujours avec 3 (s'il ne peut pas, il n'attaque pas)
+    le défenseur attaque avec 1 ou 2
+    """
+    proba_vict = 1
+    list_battle = []
+    battle_win = False
+
+    n_tour = 1
+    ta_units = territory_units(s, ta)
+    td_units = territory_units(s, td) 
+    print(f'nombre dunités de lattaquant {ta_units}, nombre units défenseur {td_units}\n')
+    # nb_tour_min = min(td_units // 2,ta_units //3)  #l'adversaire defend avec 2 et perd tout le temps et que le defenseur attaque avec 3
+
+    while ta_units > 3 and td_units >= 1 : 
+        n_tour +=1
+        population = []
+        poids = []
+        if ta_units > 3 :
+            if td_units == 1 : #attaque 3, defense 1
+                all_battle = all_battles_31()
+                for k, v in all_battles_31().items() :
+                    population.append(k)
+                    poids.append(v)
+            elif td_units > 1 : #attaque 3, defense 2
+                all_battle = all_battles_32()
+                for k, v in all_battles_32().items() :
+                    population.append(k)
+                    poids.append(v)
+        result_battle = choices(population , poids, k = 1) #renvoie une liste d'un element de population
+        result = result_battle[0]
+        list_battle.append(result)
+        proba_vict = proba_vict * all_battle[result]
+        ta_units -= result[0]
+        td_units -= result[1]
+        if td_units <= 0 :
+            battle_win = True
+    print(f'nombre de tour {n_tour}\n')
+    print(f'unités restantes attaquant{ta_units}, unités restantes defenseur {td_units}\n')
+    return proba_vict, list_battle, battle_win
+
+
+class Noeud:
+    def __init__(self, a, d, proba, enfants : List, action = None) :
+        self.a = a #nb unités de l'attaquant 
+        self.d = d #defenseur
+        self.action = action #action
+        self.proba = proba 
+        self.enfants = enfants
+
+    def __str__(self):
+        return f"({self.a},{self.d} : {self.proba})"
+    
+    def __repr__(self):
+        return str(self)
+    
+    def ajout_enfant(self, action) : #e est un Noeud
+        """
+        ajoute les enfants d'un Noeud selon une action : (3,2),(3,1),(2,2),(2,1),(1,2),(1,1)
+        """
+        dic = {(3,2) : all_battles_32(), (3,1) : all_battles_31(), (2,2) : all_battles_22(),(2,1) : all_battles_21(),(1,2) : all_battles_12(),(1,1) : all_battles_11() }
+        l_n = []
+
+        for a, d in dic[action].keys() :
+            n = Noeud(self.a-a, self.d-d, self.proba * dic[action][(a,d)],[],action)
+            l_n.append(n)
+            self.enfants.append(n)
+        return l_n
+    
+class Arbre:
+    def __init__(self, racine : Noeud):
+        self.racine = racine # type : Noeud
+        self.feuilles = [racine]
+        self.feuilles_finales = []
+    
+    def ajout_action(self, actions) :
+        """
+        ajout de toutes les actions possibles de faire à partir des feuilles 
+        """
+        for e in self.feuilles :
+            modif = False
+            for a in actions :
+                if e.a > a[0] and e.d >= a[1] :
+                    self.feuilles.extend(e.ajout_enfant(a))
+                    modif = True
+            if not modif :
+                self.feuilles_finales.append(e)
+            self.feuilles.remove(e)
+
+def arbre_proba(a, d):
+    """
+    a : nombre d'unité de l'attaquant
+    d : nombre d'unité du défenseur
+    renvoi l'arbre 
+    """
+    racine = Noeud(a, d, 1, [])
+    arbre = Arbre(racine)
+    l = [(3,2),(3,1),(2,2),(2,1),(1,2),(1,1)]
+    while len(arbre.feuilles) > 0 :
+        print(len(arbre.feuilles),len(arbre.feuilles_finales))
+        arbre.ajout_action(l)
+    print("---------")
+    p_v = 0
+    p_d = 0
+    for f in arbre.feuilles_finales:
+        if f.d == 0 :
+            p_v += f.proba
+        else :
+            p_d += f.proba
+        print(f)
+    return arbre, p_v / (p_v + p_d)
+
+def proba_victoire(arbre) :
+    p_v = 0
+    p_d = 0
+    for e in arbre.feuilles_finales :
+        if e.d == 0 :
+            p_v += e.proba
+        else :
+            p_d += e.proba
+    return p_v /(p_d + p_v)
+
