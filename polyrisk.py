@@ -30,8 +30,11 @@ from ais.neutrals import strategy_neutral_fully_random, strategy_neutral_uniform
 from ais.randoms import strategy_fully_random, strategy_uniform_random
 from ais.basic import strategy_basic, strategy_basic_improved
 from ais.manager import strategy_manager
+from ais.full_attack import strategy_full_attack
+# from ais.general import strategy_general
 from game.game import game
 from game.setup import random_initial_state
+from strategy.attacks import arbre_proba
 
 
 def format_units (n: Unit) -> str:
@@ -161,19 +164,31 @@ AIs = {
     1: strategy_fully_random,
     2: strategy_basic,
     3: strategy_basic_improved,
-    4: strategy_manager
+    4: strategy_manager,
+    5 : strategy_full_attack,
+    # 6 : strategy_general
     }
 """
 The available AIs, identified by indices in order to be selected later.
 """
 
 
-GAME = [1, 1 , 2, 4]
+GAME = [3,1,-1]
 """
 A selection of the strategies to be used by different armies.
 """
 
-
+import pickle
+import os
 if __name__ == '__main__':
-    # play_and_display(World([ AIs[i] for i in GAME ], *risk_map()), R_MAX)
-    play_and_animate(World([ AIs[i] for i in GAME ], *risk_map()), R_MAX, 0.1)
+    #play_and_display(World([ AIs[i] for i in GAME ], *risk_map()), R_MAX)
+    #play_and_animate(World([ AIs[i] for i in GAME ], *risk_map()), R_MAX, 0.1)
+    arbre= None
+    if os.path.exists('file.pkl'):
+        with open('file.pkl', 'rb') as file:
+            arbre = pickle.load(file)
+    if arbre == None:
+        arbre = arbre_proba(4,3)
+        with open('file.pkl', 'wb') as file:
+            pickle.dump(arbre, file)
+    print(arbre[1])

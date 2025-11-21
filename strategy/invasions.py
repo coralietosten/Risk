@@ -69,7 +69,7 @@ from random import randint
 from model.region import Unit
 from model.territory import Territory
 from model.state import State
-from model.state_informations import territory_occupant, territory_units
+from model.state_informations import territory_occupant, territory_units, bordering_territories, is_front
 
 
 def minimal_invasion (s:   State,
@@ -144,6 +144,9 @@ def uniform_invasion (s:   State,
     return result
 
 def basic_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p_a: Unit) -> Unit:
+    """
+    Le nombre d'unités qui envahit le territoire est le nombre d'unité restante de la dernière attaque
+    """
     #pré-condition
     assert isinstance(s, State)
     assert isinstance(t_a, Territory)
@@ -154,6 +157,39 @@ def basic_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p_a: Un
     assert n_a > 0, "At least one unit must invade"
 
     result = n_a - p_a
+
+    #post_conditions
+    assert n_a - p_a <= result, f"At least the left units from the last battle must invade, i.e., {n_a} - {p_a} = {n_a - p_a}"
+    assert result <= territory_units(s, t_a) - p_a - 1, "At least one unit must be left behind"
+
+    return result
+
+def full_attack_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p_a: Unit) -> Unit: 
+    """
+    si le trerritoire t_a n'est pas un front : ont déplace le plus d'unités possible vers le territoire a envahir
+    sinon : on déplace la moitié des unités présente dans t_a
+    """
+    #pré-condition
+    assert isinstance(s, State)
+    assert isinstance(t_a, Territory)
+    assert isinstance(t_d, Territory)
+    assert t_a in s.state, "The attacking territory must belong to the current state"
+    assert t_d in s.state, "The defending territory must belong to the current state"
+    assert territory_occupant(s, t_a) != territory_occupant(s, t_d), "The armies of the two territories must be distinct"
+    assert n_a > 0, "At least one unit must invade"
+
+    nb_unit_t_a = territory_units(s, t_a)
+    #savoir si le territoire t_a devient un nonFront
+    # is_front = True
+    # t_b = bordering_territories(s, t_a)
+    # for b in t_b :
+    #     if territory_occupant(s, b) != territory_occupant(s, t_a) and b != t_d : 
+    #         is_front = False
+    
+    if not is_front(s,t_a) : 
+        result = (nb_unit_t_a -1) - p_a #maximum d'unité possible de déplacer
+    else :
+        result = ((nb_unit_t_a - 1) + (n_a - p_a))//2
 
     #post_conditions
     assert n_a - p_a <= result, f"At least the left units from the last battle must invade, i.e., {n_a} - {p_a} = {n_a - p_a}"
@@ -174,9 +210,9 @@ def manager_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p_a: 
 
     result = min(n_a - p_a,3)
 
+
     #post_conditions
     assert n_a - p_a <= result, f"At least the left units from the last battle must invade, i.e., {n_a} - {p_a} = {n_a - p_a}"
     assert result <= territory_units(s, t_a) - p_a - 1, "At least one unit must be left behind"
 
     return result
-

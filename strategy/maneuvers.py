@@ -71,7 +71,7 @@ from model.region import Unit
 from model.territory import Territory
 from model.army import Army
 from model.state import State
-from model.state_informations import getSafePredecessor, getSafeTerritories, territory_fronts, territory_occupant, territory_units, bordering_territories, territories_occupied_by_army
+from model.state_informations import territory_occupant, territory_units, bordering_territories, territories_occupied_by_army, sort_territories_by_units, is_front, undefeated_armies,getSafePredecessor, getSafeTerritories, territory_fronts
 
 
 def no_maneuver (s: State,
@@ -215,8 +215,7 @@ def random_uniform_largest_maneuver (s: State,
 
 
 
-def basic_maneuver (s: State,
-                    a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+def basic_maneuver (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
     # PRE-CONDITION
     assert isinstance(s, State)
     assert isinstance(a, Army)
@@ -297,6 +296,51 @@ def manager_maneuver(s:State,a:Army):
                 result= (t, mini[0],val1-2 )
                 break
 
+    # POST-CONDITION
+    if result is not None:
+        (t_0, t_1, n) = result
+        assert isinstance(t_0, Territory)
+        assert isinstance(t_1, Territory)
+        assert t_0 in s.state, "The starting territory belongs to the current state"
+        assert t_1 in s.state, "The ending territory belongs to the current state"
+        assert territory_occupant(s, t_0) == a, "The starting territory is occupied by the army"
+        assert territory_occupant(s, t_1) == a, "The defending territory is occupied by the army"
+        assert n > 0, "At least one unit is maneuvering"
+        assert n < territory_units(s, t_0), "At least one unit must be left behind"
+
+    return result
+
+
+
+def full_attack_maneuver (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+    # PRE-CONDITION
+    assert isinstance(s, State)
+    assert isinstance(a, Army)
+    assert a in s.world.armies, "The army must belong to the current state"
+    result = None
+
+
+    front = False
+    result = None
+    #recherche du territoire avec le plus d'unités
+    t_a = territories_occupied_by_army(s, a) 
+    t_a = sort_territories_by_units(s,t_a) 
+    max_t = t_a[0]
+
+    b_t = list(bordering_territories(s, max_t[0]))
+    b_t_a = []
+    
+    if is_front(s,max_t[0]) : 
+        front = True
+    else : 
+        for b in  b_t: #déplacement de toutes les unités possible vers le territoire front adjacent
+            if territory_occupant(s,b) == territory_occupant(s,max_t[0]) and is_front(s, b) and result == None and max_t[1] >=2:
+                b_t_a.append(b)
+                result = (max_t[0], b, max_t[1]-1)
+    
+    if not front and result == None and max_t[1] >=2 and len(b_t_a) >0: 
+        result = (max_t[0], b_t_a[0], max_t[1]-1)
+
 
     # POST-CONDITION
     if result is not None:
@@ -309,3 +353,5 @@ def manager_maneuver(s:State,a:Army):
         assert territory_occupant(s, t_1) == a, "The defending territory is occupied by the army"
         assert n > 0, "At least one unit is maneuvering"
         assert n < territory_units(s, t_0), "At least one unit must be left behind"
+
+    return result

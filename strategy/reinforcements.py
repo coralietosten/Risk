@@ -62,7 +62,7 @@ from model.region import Unit
 from model.territory import Territory
 from model.state import State
 from model.army import Army
-from model.state_informations import is_defeated_army, territories_occupied_by_army, reinforcement_units, territory_occupant, territory_units
+from model.state_informations import is_defeated_army, territories_occupied_by_army, reinforcement_units, territory_occupant, territory_units, sort_territories_by_units
 
 
 def random_reinforcement (s: State,
@@ -122,12 +122,12 @@ def random_uniform_reinforcement (s: State,
 
 
 
-def basic_reinforcement(s: State,
-                          a: Army) -> Dict[Territory, Unit] :
+def basic_reinforcement(s: State, a: Army) -> Dict[Territory, Unit] :
+    """
+    renforcement des territoires qui possède le moins d'unités. 
+    post : tout les territoires ont le meme nombre d'unité à 1 près
+    """
     
-
-
-
     # PRE-CONDITION
     assert isinstance(s, State)
     assert isinstance(a, Army)
@@ -170,4 +170,48 @@ def basic_reinforcement(s: State,
     assert sum(result[t] for t in result) == reinforcement_units(s, a), "The sum of all the reinforcement units must be equal to {reinforcement_units(s, a)}"
 
     return result
+
+
+def full_attack_reinforcement (s: State, a: Army) -> Dict[Territory, Unit] : 
+    """
+    renforcement des territoires qui ont le plus d'unités : 1 unité chacun
+    """
+
+    # PRE-CONDITION
+    assert isinstance(s, State)
+    assert isinstance(a, Army)
+    assert a in s.world.armies, "unknown army to reinforce"
+    assert not is_defeated_army(s, a), "defeated army cannot be reinforced"
+    assert reinforcement_units(s, a) > 0, "reinforcements units have to be strictly positive"
+
+    nb_reinforcement = reinforcement_units(s, a)
+    t_a = territories_occupied_by_army(s, a) 
+    t_a = sort_territories_by_units(s,t_a) #list[(territory, unit)] 
+    amount = nb_reinforcement*[1]
+
+    territories = []
+    for t in t_a :
+        territories.append(t[0])
+    
+    if len(territories) < nb_reinforcement :
+        amount = amount[:len(territories)]
+        n = nb_reinforcement - len(territories)
+        i = 0
+        while n > 0 : 
+            i  = i % len(territories)
+            amount[i]+=1
+            n -=1
+            i+=1 
+
+    territories = territories[:nb_reinforcement]
+    result = dict(zip(territories, amount))
+
+
+    # POST-CONDITION
+    assert all(territory_occupant(s, t) == a for t in result), "The selected territories belong to the army"
+    assert all(result[t] > 0 for t in result), "Each selected territory must receive at least one unit"
+    assert sum(result[t] for t in result) == reinforcement_units(s, a), "The sum of all the reinforcement units must be equal to {reinforcement_units(s, a)}"
+
+    return result
+
 
