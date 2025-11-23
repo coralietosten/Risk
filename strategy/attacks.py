@@ -463,8 +463,13 @@ def invade_the_shortest(s:State,a:Army):
 
                 if territory_occupant(s,att) ==a and territory_occupant(s,defs) !=a :
                     break
+            #Utilisation de la stratégie de simulation
             nb_att = territory_units(s,att)
-            A=(att, defs, min(3,nb_att-1))
+            nb_def = territory_units(s,defs)
+            action = attack_strategie(nb_att,nb_def)
+            if action is not None:
+                A = (att, defs, action)
+            # A=(att, defs, min(3,nb_att-1)) #Sans simulation
     return A
 
 
@@ -519,7 +524,11 @@ def invade_the_most_invades(s:State,a:Army):
             if territory_occupant(s,att) ==a and territory_occupant(s,defs) !=a :
                 break
         nb_att = territory_units(s,att)
-        A=(att, defs, min(3,nb_att-1))
+        nb_def = territory_units(s,defs)
+        action = attack_strategie(nb_att,nb_def)
+        if action is not None:
+            A = (att, defs, action)
+        # A=(att, defs, min(3,nb_att-1))
     return A
 
 def simulation_strategie_attack (s:State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:

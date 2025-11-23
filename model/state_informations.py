@@ -351,7 +351,8 @@ def getSafeTerritories(s:State,a:Army) :
     for t in s.world.territories:
         a1 = territory_occupant(s,t) 
         if a == a1:
-            if len(armies_in_territories(s,bordering_territories(s,t))) == 1:
+            am = armies_in_territories(s,bordering_territories(s,t))
+            if a in am and len(am)==1:
                 terr.add(t)
     return terr
             
