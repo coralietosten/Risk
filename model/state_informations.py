@@ -355,11 +355,6 @@ def sort_territories_by_units(s, t_a : Set[Territory])-> List[Tuple[Territory,Un
     result.sort(key = lambda x:x[1],reverse=True) #tri de la liste selon le nombre d'units
     return result
 
-def shortest_path (s: State, t1: Territory, t2 : Territory) : #  -> List[Territory] :
-    result = []
-    bordering_territories(s, t1)
-    return result
-
 def is_front(s: State, t1 : Territory) -> bool :
     t_b = bordering_territories(s, t1)
     for b in t_b :
@@ -447,11 +442,12 @@ def probability_win_territory2(s:State, ta:Territory, td:Territory) -> float :
 
 
 class Noeud:
-    def __init__(self, a, d, proba, enfants : List, action = None) :
+    def __init__(self, a, d, proba, enfants : List, parent = None, action = None) :
         self.a = a #nb unités de l'attaquant 
         self.d = d #defenseur
         self.action = action #action
         self.proba = proba 
+        self.parent = parent
         self.enfants = enfants
 
     def __str__(self):
@@ -468,9 +464,11 @@ class Noeud:
         l_n = []
 
         for a, d in dic[action].keys() :
-            n = Noeud(self.a-a, self.d-d, self.proba * dic[action][(a,d)],[],action)
+            # if self.proba * dic[action][(a,d)] > 0.001 : #si la probabilité est inférieur a un seuil
+            n = Noeud(self.a-a, self.d-d, self.proba * dic[action][(a,d)],[],self,action)
             l_n.append(n)
             self.enfants.append(n)
+            
         return l_n
     
 class Arbre:
@@ -486,12 +484,14 @@ class Arbre:
         for e in self.feuilles :
             modif = False
             for a in actions :
-                if e.a > a[0] and e.d >= a[1] :
+                if e.a > a[0] and e.d >= a[1] and  e.proba > 0.05 :
                     self.feuilles.extend(e.ajout_enfant(a))
                     modif = True
             if not modif :
                 self.feuilles_finales.append(e)
             self.feuilles.remove(e)
+    
+    
 
 def arbre_proba(a, d):
     """
@@ -501,20 +501,69 @@ def arbre_proba(a, d):
     """
     racine = Noeud(a, d, 1, [])
     arbre = Arbre(racine)
-    l = [(3,2),(3,1),(2,2),(2,1),(1,2),(1,1)]
+    l = [(3,2),(3,1),(2,2),(2,1),(1,2),(1,1)] #arbre complet
     while len(arbre.feuilles) > 0 :
         print(len(arbre.feuilles),len(arbre.feuilles_finales))
         arbre.ajout_action(l)
     print("---------")
-    p_v = 0
-    p_d = 0
+    proba_vict = 0
+    proba_def = 0
     for f in arbre.feuilles_finales:
         if f.d == 0 :
-            p_v += f.proba
+            proba_vict += f.proba
         else :
-            p_d += f.proba
+            proba_def += f.proba
         print(f)
-    return arbre, p_v / (p_v + p_d)
+    print(len(arbre.feuilles_finales))
+    return arbre, proba_vict / (proba_vict + proba_def)
+
+
+def arbre_proba_3(a, d):
+    """
+    a : nombre d'unité de l'attaquant
+    d : nombre d'unité du défenseur
+    renvoi l'arbre 
+    l'attaquant attaque avec 3 unité tant qu'il peut puis attaque avec 2 ou 1 unités
+    """
+    racine = Noeud(a, d, 1, [])
+    arbre = Arbre(racine)
+    l = [(3,2),(3,1),(2,2),(2,1),(1,2),(1,1)] #arbre complet
+    while len(arbre.feuilles) > 0 :
+        print(len(arbre.feuilles),len(arbre.feuilles_finales))
+        arbre.ajout_action(l[:3])
+    print("---------")
+    proba_vict = 0
+    proba_def = 0
+    for f in arbre.feuilles_finales:
+        if f.d != 0 and f.a != 1:
+            arbre.feuilles_finales.remove(f)
+            arbre.feuilles.append(f)
+            arbre.ajout_action(l)
+    max_proba_vic = 0
+    f_max = None
+    for f in arbre.feuilles_finales :
+        #calcul proba de victoire
+        if f.d == 0 : 
+            proba_vict += f.proba
+            #calcul proba_max
+            if f.proba > max_proba_vic :
+                max_proba_vic = f.proba
+                f_max = f
+        else :
+            proba_def += f.proba
+        print(f)
+    print(len(arbre.feuilles_finales))
+    print(f'la proba max : {f_max}')
+    f2=f
+    liste_action = []
+    while f2.parent != None:
+        # print(f2.action, f2.a, f2.d)
+        liste_action.append(f2.action)
+        f2 = f2.parent
+    liste_action.reverse()
+    print(liste_action)
+    return arbre, proba_vict / (proba_vict + proba_def), liste_action
+
 
 def proba_victoire(arbre) :
     p_v = 0

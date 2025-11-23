@@ -124,7 +124,7 @@ def random_uniform_reinforcement (s: State,
 
 def basic_reinforcement(s: State, a: Army) -> Dict[Territory, Unit] :
     """
-    renforcement des territoires qui possède le moins d'unités. 
+    Renforcement des territoires qui possède le moins d'unités. 
     post : tout les territoires ont le meme nombre d'unité à 1 près
     """
     
@@ -174,7 +174,7 @@ def basic_reinforcement(s: State, a: Army) -> Dict[Territory, Unit] :
 
 def full_attack_reinforcement (s: State, a: Army) -> Dict[Territory, Unit] : 
     """
-    renforcement des territoires qui ont le plus d'unités : 1 unité chacun
+    Renforcement des territoires qui ont le plus d'unités : 1 unité chacun
     """
 
     # PRE-CONDITION

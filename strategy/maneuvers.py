@@ -267,6 +267,10 @@ def basic_maneuver (s: State, a: Army) -> Optional[Tuple[Territory, Territory, U
 
 
 def full_attack_maneuver (s: State, a: Army) -> Optional[Tuple[Territory, Territory, Unit]]:
+    """
+    Déplacement des unités sur le territoire avec le max d'unités vers un territoire front si un territoire adjacent est un front. 
+    S'il n'y a pas de front adjacent, déplacment vers un territoire aléatoire.
+    """
     # PRE-CONDITION
     assert isinstance(s, State)
     assert isinstance(a, Army)
