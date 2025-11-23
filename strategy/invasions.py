@@ -166,8 +166,8 @@ def basic_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p_a: Un
 
 def full_attack_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p_a: Unit) -> Unit: 
     """
-    si le trerritoire t_a n'est pas un front : ont déplace le plus d'unités possible vers le territoire a envahir
-    sinon : on déplace la moitié des unités présente dans t_a
+    Si le trerritoire t_a n'est pas un front : ont déplace le plus d'unités possible vers le territoire à envahir
+    Sinon : on déplace la moitié des unités présente dans t_a
     """
     #pré-condition
     assert isinstance(s, State)
@@ -179,12 +179,6 @@ def full_attack_invasion (s: State, t_a: Territory, t_d: Territory, n_a: Unit, p
     assert n_a > 0, "At least one unit must invade"
 
     nb_unit_t_a = territory_units(s, t_a)
-    #savoir si le territoire t_a devient un nonFront
-    # is_front = True
-    # t_b = bordering_territories(s, t_a)
-    # for b in t_b :
-    #     if territory_occupant(s, b) != territory_occupant(s, t_a) and b != t_d : 
-    #         is_front = False
     
     if not is_front(s,t_a) : 
         result = (nb_unit_t_a -1) - p_a #maximum d'unité possible de déplacer
