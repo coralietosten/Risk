@@ -22,7 +22,7 @@ from typing import Optional
 from time import sleep
 from model.region import Unit
 from model.world import World
-from model.state_informations import undefeated_armies, army_units, is_defeated_army
+from model.state_informations import undefeated_armies, army_units, is_defeated_army, arbre_proba
 from boards.polytech_board import risk_map, risk_display
 # from boards.classic_board import risk_map, risk_display
 from boards.rendering import risk_colour_map, colour_map, BRIGHT_BACKGROUND_COLOUR_MAP
@@ -34,7 +34,6 @@ from ais.full_attack import strategy_full_attack
 # from ais.general import strategy_general
 from game.game import game
 from game.setup import random_initial_state
-from strategy.attacks import arbre_proba
 
 
 def format_units (n: Unit) -> str:
@@ -173,7 +172,7 @@ The available AIs, identified by indices in order to be selected later.
 """
 
 
-GAME = [3,1,-1]
+GAME = [3,2,-1,4]
 """
 A selection of the strategies to be used by different armies.
 """
@@ -182,13 +181,13 @@ import pickle
 import os
 if __name__ == '__main__':
     #play_and_display(World([ AIs[i] for i in GAME ], *risk_map()), R_MAX)
-    #play_and_animate(World([ AIs[i] for i in GAME ], *risk_map()), R_MAX, 0.1)
-    arbre= None
-    if os.path.exists('file.pkl'):
-        with open('file.pkl', 'rb') as file:
-            arbre = pickle.load(file)
-    if arbre == None:
-        arbre = arbre_proba(4,3)
-        with open('file.pkl', 'wb') as file:
-            pickle.dump(arbre, file)
-    print(arbre[1])
+    play_and_animate(World([ AIs[i] for i in GAME ], *risk_map()), R_MAX, 0.1)
+    # arbre= None
+    # if os.path.exists('file.pkl'):
+    #     with open('file.pkl', 'rb') as file:
+    #         arbre = pickle.load(file)
+    # if arbre == None:
+    #     arbre = arbre_proba(4,3)
+    #     with open('file.pkl', 'wb') as file:
+    #         pickle.dump(arbre, file)
+    # print(arbre[1])
